@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "mcme-modpack-marker",
+	"version": "${version}",
+	"name": "MCME Modpack Marker",
+	"description": "Utilities for MC Middle Earth server.",
+	"authors": [
+		"opl"
+	],
+	"contact": {
+		"homepage": "https://www.mcmiddleearth.com/"
+	},
+	"license": "UNLICENSED",
+	"icon": "assets/mcme-modpack-marker/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"im.opl.mcme.marker.MCMEModpackMarker"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.5",
+		"minecraft": ["~1.20.5", "1.21.x"],
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

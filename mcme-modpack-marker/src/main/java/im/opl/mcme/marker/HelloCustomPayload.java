@@ -1,16 +1,16 @@
 package im.opl.mcme.marker;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public record HelloCustomPayload(String json) implements CustomPayload {
-	public static final CustomPayload.Id<HelloCustomPayload> ID = new Id<>(MCMEModpackMarker.CHANNEL_ID);
-	public static final PacketCodec<PacketByteBuf, HelloCustomPayload> CODEC = PacketCodecs.STRING.xmap(HelloCustomPayload::new, HelloCustomPayload::json).cast();
+public record HelloCustomPayload(String json) implements CustomPacketPayload {
+	public static final CustomPacketPayload.Type<HelloCustomPayload> TYPE = new CustomPacketPayload.Type<>(MCMEModpackMarker.CHANNEL_ID);
+	public static final StreamCodec<ByteBuf, HelloCustomPayload> CODEC = ByteBufCodecs.STRING_UTF8.map(HelloCustomPayload::new, HelloCustomPayload::json);
 
 	@Override
-	public Id<? extends CustomPayload> getId() {
-		return ID;
+	public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }

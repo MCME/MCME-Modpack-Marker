@@ -1,32 +1,39 @@
 package im.opl.mcme.marker;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.networking.v1.C2SPlayChannelEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.networking.v1.ServerboundPlayChannelEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MCMEModpackMarker implements ClientModInitializer {
 	public static final String MOD_ID = "mcme-modpack-marker";
 
-	public static final Identifier CHANNEL_ID = Identifier.of(MOD_ID, "hello");
+	public static final Identifier CHANNEL_ID = Identifier.fromNamespaceAndPath(MOD_ID, "hello");
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	@Override
 	public void onInitializeClient() {
-		PayloadTypeRegistry.playC2S().register(HelloCustomPayload.ID, HelloCustomPayload.CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(HelloCustomPayload.TYPE, HelloCustomPayload.CODEC);
 
-		C2SPlayChannelEvents.REGISTER.register((handler, sender, client, channels) -> {
-			if (channels.contains(HelloCustomPayload.ID.id())) {
-				sender.sendPacket(new CustomPayloadC2SPacket(new HelloCustomPayload("{\"sodiumVersion\":" + getModVersion("sodium") + "}")));
+		ServerboundPlayChannelEvents.REGISTER.register((handler, sender, client, channels) -> {
+			if (channels.contains(HelloCustomPayload.TYPE.id())) {
+				ClientPlayNetworking.send(new HelloCustomPayload("{\"sodiumVersion\":" + getModVersion("sodium") + "}"));
 			}
 		});
 
 		LOGGER.info("MCME Modpack Marker ready.");
+	}
+
+	/** This mod's version. */
+	public static String version() {
+		return FabricLoader.getInstance().getModContainer(MOD_ID)
+			.map(modContainer -> modContainer.getMetadata().getVersion().getFriendlyString())
+			.orElse("?");
 	}
 
 	private String getModVersion(String modId) {

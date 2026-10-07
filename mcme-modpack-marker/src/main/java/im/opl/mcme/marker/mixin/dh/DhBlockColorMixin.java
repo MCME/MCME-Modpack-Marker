@@ -20,11 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * (ClientBlockStateColorCache.resolveColors), from one face's texture. For
  * models with no full-cube faces - MCME's .obj leaves and plants - it's
  * replaced, as it's settled, by all their faces' average (LodColors).
- *
- * <p>Water's opacity too: DH takes it from the water texture's (two thirds to
- * three quarters), so a waterfall one block thick shows the dark cliff behind
- * it far off. Close up, MCME's water seen from afar is all but opaque (its
- * murk, water.glsl), so far off it's WATER_OPACITY.
  */
 @Pseudo
 @Mixin(targets = "com.seibel.distanthorizons.common.wrappers.block.ClientBlockStateColorCache", remap = false)
@@ -34,7 +29,6 @@ public abstract class DhBlockColorMixin {
 	@Shadow private boolean needPostTinting;
 	@Shadow private int tintIndex;
 
-	private static final int WATER_OPACITY = 245;
 	private static boolean mcme$failed;
 
 	/**
@@ -59,13 +53,7 @@ public abstract class DhBlockColorMixin {
 		at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD,
 			target = "Lcom/seibel/distanthorizons/common/wrappers/block/ClientBlockStateColorCache;isColorResolved:Z"))
 	private void mcme$wholeModel(CallbackInfo ci) {
-		if (mcme$failed || !McmeConfig.get().dhExactColors) return;
-		if (blockState.getBlock() instanceof net.minecraft.world.level.block.LiquidBlock
-			&& blockState.getFluidState().is(net.minecraft.tags.FluidTags.WATER)) {
-			baseColor = WATER_OPACITY << 24 | baseColor & 0xFFFFFF;
-			return;
-		}
-		if (!blockState.getFluidState().isEmpty()) return;
+		if (mcme$failed || !McmeConfig.get().dhExactColors || !blockState.getFluidState().isEmpty()) return;
 		try {
 			LodColors.Color color = LodColors.of(blockState);
 			if (color == null) return;

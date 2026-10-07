@@ -46,7 +46,7 @@ public final class SettingsScreen extends Screen {
 				DhDefaults.apply();
 				DhReload.afterColorSetting();
 			}, config);
-		y = toggle(x, y, "True colours far off", "Colour Distant Horizons' LODs as the blocks look: custom models such as MCME's leaves by their own faces, slabs by their own model, the leaf slabs on doors and trapdoors not left out, blocks that can't be seen left out, and water as opaque as it looks close up.",
+		y = toggle(x, y, "True colours far off", "Colour Distant Horizons' LODs as the blocks look: custom models such as MCME's leaves by their own faces, slabs by their own model, the leaf slabs on doors and trapdoors not left out, blocks that can't be seen left out, and waterfalls whole and not see-through.",
 			c -> c.dhExactColors, (c, v) -> {
 				c.dhExactColors = v;
 				DhReload.afterColorSetting();

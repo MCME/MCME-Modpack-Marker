@@ -12,6 +12,8 @@
 		"dh.DhBlockOpacityMixin",
 		"dh.DhIgnoredBlocksMixin",
 		"dh.DhQuadWrapperMixin",
+		"dh.DhWaterOpacityMixin",
+		"dh.DhWaterSidesMixin",
 		"dh.DhRendererTrackingMixin",
 		"dh.DhGenericRendererTrackingMixin",
 		"dh.GlDhTerrainShaderProgramMixin",

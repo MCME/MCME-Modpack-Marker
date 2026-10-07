@@ -74,12 +74,33 @@ DH gives each block state one colour, worked out once from its model
    `DhReload` has DH make it again after a pack switch. The shade the block
    casts stays, in the light DH keeps. The log says how many states it added.
 
-Also in `DhBlockColorMixin`: water's opacity. DH takes it from the water
-texture's (two thirds to three quarters), so a waterfall one block thick
-showed the dark cliff behind it as holes. MCME's water seen from afar is all
-but opaque close up (its murk), so far off it's 96% (`WATER_OPACITY`).
+Waterfalls: DH drew them with holes, the cliff behind showing through.
 
-And a model with no full-cube faces is coloured by
+- **Missing sides.** DH draws a see-through block's side only where it gets
+  the full sky's light (15), so that water shows no sides in caves
+  (`ColumnBox.tryAddVerticalFaceWithSkyLightToBuilder`, `inputTransparent`).
+  A fall's sides against a cliff get a little less, and were left out.
+  `DhWaterSidesMixin` draws water's sides wherever an opaque block's would
+  be. That rule was also all that hid the sides between two water columns
+  (DH lights them by the water's bottom, never 15), so drawn they walled
+  lakes and rivers in: the stretch of a see-through side facing other
+  see-through water is left out, as close up (`makeAdjVerticalQuad`).
+  See-through on both sides: DH counts every block holding water as water
+  (`BlockStateWrapper.isLiquid`), so a waterlogged stair or wall is material
+  12 too, drawn solid in its own colour, and its sides against the water
+  stay.
+- **See-through water.** DH draws water as see-through as its texture (two
+  thirds to three quarters), right for a lake's top, but a fall one block
+  thick shows the dark cliff behind it. `DhWaterOpacityMixin` makes water's
+  sides and undersides 96% opaque far off (`LodQuadBuilder.addQuadAdj`,
+  `addQuadDown`, material 12). Close up they're see-through (water.glsl's
+  `WATER_MURK_SIDE`), but far off a fall is a few pixels with none of its
+  light and foam, and the cliff through it only darkened it.
+  Its tops stay DH's.
+
+The log says the first time each takes effect.
+
+Also in `DhBlockColorMixin`: a model with no full-cube faces is coloured by
 the average of all its faces, each over the part of its texture it uses,
 weighted by size (`LodColors.of`), instead of one face's whole texture.
 

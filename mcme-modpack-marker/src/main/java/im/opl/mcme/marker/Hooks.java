@@ -42,6 +42,8 @@ public final class Hooks {
 			"getQuadsForDirection", "resolveColors", "blockState", "baseColor", "needPostTinting", "tintIndex", "isColorResolved", "clearCachedTints"),
 		new Hook("distanthorizons", "LOD colours", DH + "common.wrappers.block.BlockStateWrapper",
 			"calculateOpacity", "isAir", "WRAPPER_BY_BLOCK_STATE", "opacity", "isLiquid"),
+		new Hook("distanthorizons", "opaque waterfalls far off", DH + "core.dataObjects.render.bufferBuilding.LodQuadBuilder", "addQuadAdj", "addQuadDown"),
+		new Hook("distanthorizons", "opaque waterfalls far off", DH + "core.dataObjects.render.bufferBuilding.ColumnBox", "tryAddVerticalFaceWithSkyLightToBuilder", "makeAdjVerticalQuad"),
 		new Hook("distanthorizons", "unseen blocks left out far off", DH + "common.wrappers.block.BlockStateWrapper",
 			"getRendererIgnoredBlocks", "fromBlockState", "rendererIgnoredBlocks", "rendererIgnoredCaveBlocks"),
 		new Hook("distanthorizons", "LODs after a pack switch", DH + "common.render.openGl.GlDhTerrainRenderer", "INSTANCE", "terrainShaderProgram"),

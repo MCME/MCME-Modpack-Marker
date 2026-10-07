@@ -1,4 +1,4 @@
-// MCME: the distant terrain mods' terrain (patch_shaderpack.py)
+// MCME: the distant terrain mods' terrain (MCME mod)
 #if defined DISTANT_HORIZONS
 #ifndef MCME_DECLARED_dhDepthTex0
 uniform sampler2D dhDepthTex0;

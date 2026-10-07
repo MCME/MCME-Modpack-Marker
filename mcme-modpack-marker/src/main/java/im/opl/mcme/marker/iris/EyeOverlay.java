@@ -4,6 +4,7 @@ import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import im.opl.mcme.marker.MCMEModpackMarker;
+import im.opl.mcme.marker.McmeConfig;
 import im.opl.mcme.marker.dh.DhShaders;
 import im.opl.mcme.marker.shaderpacks.PatchedShaderPacks;
 import im.opl.mcme.marker.shaderpacks.ShaderPackPatcher;
@@ -54,7 +55,7 @@ public final class EyeOverlay {
 				build();
 			}
 			// a recipe draws it in the pack itself
-			if (failed || program == 0 || PatchedShaderPacks.current().eye()) return;
+			if (failed || program == 0 || PatchedShaderPacks.current().eye() || !McmeConfig.get().shaderPackEye) return;
 			drawEye(pipeline);
 		} catch (Throwable e) {
 			failed = true;

@@ -1,5 +1,5 @@
 #version 330 compatibility
-// MCME: the fire eye, drawn over the finished scene (patch_shaderpack.py)
+// MCME: the fire eye, drawn over the finished scene (MCME mod)
 out vec2 mcmeTexCoord;
 
 void main() {

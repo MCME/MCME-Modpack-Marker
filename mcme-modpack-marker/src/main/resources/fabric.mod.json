@@ -16,6 +16,9 @@
 	"entrypoints": {
 		"client": [
 			"im.opl.mcme.marker.MCMEModpackMarker"
+		],
+		"modmenu": [
+			"im.opl.mcme.marker.ModMenuIntegration"
 		]
 	},
 	"depends": {
@@ -28,6 +31,7 @@
 		"mcme-modpack-marker.mixins.json"
 	],
 	"suggests": {
-		"distanthorizons": ">=3.3.0"
+		"distanthorizons": ">=3.3.0",
+		"modmenu": "*"
 	}
 }

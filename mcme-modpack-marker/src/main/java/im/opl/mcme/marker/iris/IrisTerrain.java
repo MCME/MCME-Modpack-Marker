@@ -1,6 +1,7 @@
 package im.opl.mcme.marker.iris;
 
 import im.opl.mcme.marker.MCMEModpackMarker;
+import im.opl.mcme.marker.McmeConfig;
 import im.opl.mcme.marker.dh.DhShaders;
 import im.opl.mcme.marker.shaderpacks.PatchedShaderPacks;
 import im.opl.mcme.marker.shaderpacks.ShaderPackPatcher;
@@ -39,8 +40,9 @@ import org.lwjgl.opengl.GL40;
  * </ul>
  *
  * The edited program is linked once to try it: if it fails, Iris gets the
- * program as it was, and the reason is logged. Each edited program is also
- * written to .minecraft/mcme/iris/, to see what was done.
+ * program as it was, and the reason is logged. A program that failed is also
+ * written to .minecraft/mcme/iris/, to see what went wrong - every edited
+ * program with McmeConfig.debugShaderDumps.
  */
 public final class IrisTerrain {
 	// Iris's names for Sodium's terrain programs (its ShaderKeys, lower case)
@@ -96,14 +98,15 @@ public final class IrisTerrain {
 			Map<K, String> patched = new LinkedHashMap<>(stages);
 			List<String> done = new ArrayList<>();
 			K vertex = key(stages, "VERTEX"), fragment = key(stages, "FRAGMENT");
-			if (vertex != null && !recipe.eye()) {
+			// (the eye's faces only where EyeOverlay draws the eye instead)
+			if (vertex != null && !recipe.eye() && McmeConfig.get().shaderPackEye) {
 				String edited = dropEyeFaces(stages.get(vertex));
 				if (edited != null) {
 					patched.put(vertex, edited);
 					done.add("the fire eye block dropped");
 				}
 			}
-			if (terrain && fragment != null) {
+			if (terrain && fragment != null && McmeConfig.get().shaderPackTerrain && !ShaderPackPatcher.isLite(DhShaders::include)) {
 				Fluids fluids = Fluids.load(DhShaders::include, !recipe.lavaIn(ShaderPackPatcher.LavaWhere.TERRAIN));
 				String edited = fluids == null ? null : fluids.addTo(stages.get(fragment));
 				if (edited != null) {
@@ -126,7 +129,8 @@ public final class IrisTerrain {
 	 * have none.
 	 */
 	public static <K> Map<K, String> patchLod(String name, Map<K, String> stages) {
-		if (name == null || stages == null || !name.startsWith("dh_")) return stages;
+		if (name == null || stages == null || !name.startsWith("dh_") || !McmeConfig.get().shaderPackTerrain) return stages;
+		if (ShaderPackPatcher.isLite(DhShaders::include)) return stages;   // the Lite zip: no lava
 		if (PatchedShaderPacks.current().lavaIn(ShaderPackPatcher.LavaWhere.DISTANT_HORIZONS)) return stages;
 		try {
 			K vertex = key(stages, "VERTEX");
@@ -147,7 +151,7 @@ public final class IrisTerrain {
 	private static <K> Map<K, String> tried(String name, Map<K, String> stages, Map<K, String> patched, List<String> done) {
 		if (done.isEmpty()) return stages;
 		String error = linkError(patched);
-		dump(name, patched, error);
+		if (error != null || McmeConfig.get().debugShaderDumps) dump(name, patched, error);
 		if (error != null) {
 			MCMEModpackMarker.LOGGER.warn("MCME couldn't add {} to the shader pack's {}, so left it as it was: {}",
 				String.join(" and ", done), name, error);

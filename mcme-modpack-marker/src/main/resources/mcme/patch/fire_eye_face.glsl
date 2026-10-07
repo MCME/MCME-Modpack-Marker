@@ -1,4 +1,4 @@
-// MCME: whether a vertex is one of the fire eye block's faces (patch_shaderpack.py)
+// MCME: whether a vertex is one of the fire eye block's faces (MCME mod)
 #ifndef MCME_DECLARED_gtexture
 uniform sampler2D gtexture;
 #endif

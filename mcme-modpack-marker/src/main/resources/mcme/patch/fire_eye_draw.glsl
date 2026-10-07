@@ -1,4 +1,4 @@
-// MCME: the fire eye, drawn over a finished scene (patch_shaderpack.py)
+// MCME: the fire eye, drawn over a finished scene (MCME mod)
 #include "/lib/mcme/far_terrain.glsl"
 #include "/lib/mcme/fire_eye_config.glsl"
 #define FIRE_NO_GLOW

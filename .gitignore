@@ -96,3 +96,6 @@ fabric.properties
 
 # Editor-based HTTP Client
 http-client.private.env.json
+
+# Eclipse / VS Code Java output
+bin/

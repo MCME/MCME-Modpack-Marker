@@ -1,6 +1,7 @@
 package im.opl.mcme.marker.dh;
 
 import im.opl.mcme.marker.MCMEModpackMarker;
+import im.opl.mcme.marker.ShaderClock;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashSet;
@@ -31,10 +32,15 @@ import org.lwjgl.opengl.GL20;
  * {@code uMcmeCameraFrac} (vec3), the camera's block and where in it, and
  * {@code uMcmeTime} (float), seconds into the day as vanilla's
  * {@code GameTime * 1200.0}. A shader that doesn't declare them is untouched.
+ *
+ * <p>DH compiles each shader once, when it first renders, and never again:
+ * after a resource reload {@link DhReload} has it build them again.
  */
 public final class DhShaders {
 	private static final Pattern IMPORT = Pattern.compile("^\\s*#moj_import\\s*<(?:([a-z0-9_.-]+):)?([^>]+)>\\s*$");
 	private static final Set<String> LOGGED = ConcurrentHashMap.newKeySet();
+	// each shader DH has loaded through load(): what it got, or "" for its own
+	private static final java.util.Map<String, String> LOADED = new ConcurrentHashMap<>();
 
 	private DhShaders() {
 	}
@@ -45,15 +51,26 @@ public final class DhShaders {
 	 * null to let DH load its own.
 	 */
 	public static String load(String path) {
+		String source = find(path, Minecraft.getInstance() == null ? null : Minecraft.getInstance().getResourceManager());
+		LOADED.put(path, source == null ? "" : source);
+		return source;
+	}
+
+	/** Whether DH has loaded any shader yet - whether it has started drawing. */
+	public static boolean anyLoaded() {
+		return !LOADED.isEmpty();
+	}
+
+	// the shader at path as the resource packs have it, its imports filled in; null for DH's own
+	private static String find(String path, net.minecraft.server.packs.resources.ResourceManager resources) {
 		try {
 			if (!path.startsWith("assets/")) return null;
 			String rest = path.substring("assets/".length());
 			int slash = rest.indexOf('/');
 			if (slash <= 0) return null;
 			Identifier id = Identifier.tryBuild(rest.substring(0, slash), rest.substring(slash + 1));
-			Minecraft minecraft = Minecraft.getInstance();
-			if (id == null || minecraft == null || minecraft.getResourceManager() == null) return null;
-			Optional<Resource> resource = minecraft.getResourceManager().getResource(id);
+			if (id == null || resources == null) return null;
+			Optional<Resource> resource = resources.getResource(id);
 			if (resource.isEmpty()) return null;
 			String source = expand(read(resource.get()), new HashSet<>(), 0);
 			if (LOGGED.add(path)) {
@@ -84,11 +101,9 @@ public final class DhShaders {
 		if (time >= 0) GL20.glUniform1f(time, daySeconds());
 	}
 
-	/** Seconds into the day, as vanilla's shaders' {@code GameTime * 1200.0}: the clock MCME's effects run by. */
+	/** Seconds into the day, as vanilla's shaders' {@code GameTime * 1200.0}: the clock MCME's effects run by: real time ({@link ShaderClock}). */
 	public static float daySeconds() {
-		Minecraft minecraft = Minecraft.getInstance();
-		if (minecraft == null || minecraft.level == null) return 0.0f;
-		return (minecraft.level.getGameTime() % 24000L + minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false)) / 20.0f;
+		return ShaderClock.daySeconds();
 	}
 
 	/**

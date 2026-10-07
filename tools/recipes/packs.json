@@ -1,0 +1,14 @@
+{
+  "_comment": "The shader packs MCME's recipes support, at the versions MCME supports (docs/shader-packs.md). check_recipes.py downloads each, patches it and compiles what the patch changed. 'recipe' is the one that must take it.",
+  "packs": [
+    {"name": "Bliss", "recipe": "Bliss", "github": "X0nk/Bliss-Shader", "commit": "8132c57"},
+    {"name": "Complementary Reimagined", "recipe": "Complementary", "modrinth": "complementary-reimagined", "version": "r5.9.3", "file": "ComplementaryReimagined_r5.9.3.zip"},
+    {"name": "Complementary Unbound", "recipe": "Complementary", "modrinth": "complementary-unbound", "version": "r5.9.3", "file": "ComplementaryUnbound_r5.9.3.zip"},
+    {"name": "Spooklementary", "recipe": "Complementary", "modrinth": "spooklementary", "version": "v2.0.4", "file": "Spooklementary_v2.0.4.zip"},
+    {"name": "BSL", "recipe": "BSL", "modrinth": "bsl-shaders", "version": "10.1.8", "file": "BSL_v10.1.8.zip"},
+    {"name": "MakeUp Ultra Fast", "recipe": "MakeUp", "modrinth": "makeup-ultra-fast-shaders", "version": "9.5f", "file": "MakeUp-UltraFast-9.5f.zip"},
+    {"name": "Mellow", "recipe": "Mellow", "modrinth": "mellow", "version": "3.4.1a", "file": "Mellow v3.4.1a.zip"},
+    {"name": "Solas", "recipe": "Solas", "modrinth": "solas-shader", "version": "3.7b", "file": "Solas Shader V3.7b.zip"},
+    {"name": "Sildur's Vibrant", "recipe": "Sildur's", "modrinth": "sildurs-vibrant-shaders", "version": "2.02", "file": "Sildur's Vibrant Shaders v2.02 Extreme.zip"}
+  ]
+}

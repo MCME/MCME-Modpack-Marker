@@ -31,6 +31,7 @@ WaterShore mcmeNoShore() {
     s.dy = vec2(0.0);
     s.shore = vec4(0.0);
     s.open = 1.0;
+    s.height = 1.0;
     return s;
 }
 

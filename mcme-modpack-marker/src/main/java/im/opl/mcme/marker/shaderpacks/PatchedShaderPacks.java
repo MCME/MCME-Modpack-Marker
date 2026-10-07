@@ -1,6 +1,7 @@
 package im.opl.mcme.marker.shaderpacks;
 
 import im.opl.mcme.marker.MCMEModpackMarker;
+import im.opl.mcme.marker.McmeConfig;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -71,9 +72,10 @@ public final class PatchedShaderPacks {
 	/** What Iris should load for the pack named name, whose shaders/ folder is shaders. */
 	public static Path substitute(Path shaders, String name) {
 		current = Recipe.NONE;
+		if (!McmeConfig.get().shaderPackRecipes) return shaders;
 		try {
 			if (Files.exists(shaders.resolveSibling(ShaderPackPatcher.MARKER)) || Files.exists(shaders.resolve(ShaderPackPatcher.MARKER))) {
-				// already edited, by the installer or patch_shaderpack.py: the eye
+				// already edited, by the installer or the old patch script: the eye
 				// at least, its lava unknown (a second go at it does no harm)
 				current = new Recipe("an earlier edit", true, EnumSet.noneOf(ShaderPackPatcher.LavaWhere.class));
 				MCMEModpackMarker.LOGGER.info("Shader pack {} was edited for MCME already, so is loaded as it is; pick the pack it was made from to have MCME edit it now", name);

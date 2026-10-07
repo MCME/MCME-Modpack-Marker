@@ -1,6 +1,6 @@
 #version 330 compatibility
 // MCME: the fire eye, drawn over the finished scene, before bloom
-// (patch_shaderpack.py)
+// (MCME mod)
 {settings}
 uniform sampler2D colortex{buffer};
 uniform sampler2D depthtex0;

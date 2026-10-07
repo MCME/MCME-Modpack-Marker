@@ -1,5 +1,6 @@
 package im.opl.mcme.marker.mixin.dh;
 
+import im.opl.mcme.marker.McmeConfig;
 import im.opl.mcme.marker.dh.DhShaders;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
@@ -17,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class GlShaderMixin {
 	@Inject(method = "loadFile", at = @At("HEAD"), cancellable = true, require = 0)
 	private static void mcme$loadFromResourcePacks(String path, boolean absoluteFilePath, CallbackInfoReturnable<String> cir) {
-		if (absoluteFilePath) return;
+		if (absoluteFilePath || !McmeConfig.get().dhResourcePackShaders) return;
 		String source = DhShaders.load(path);
 		if (source != null) cir.setReturnValue(source);
 	}

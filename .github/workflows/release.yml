@@ -1,0 +1,49 @@
+# A release for every version tag (v1.1.0 and so on): builds the mod and
+# publishes the jar with its SHA-256 beside it, which is what the mod's
+# updater looks for - mcme-modpack-marker-<version>-mc<Minecraft>.jar and
+# that name plus .sha256. The tag has to match mod_version in gradle.properties.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcme-modpack-marker
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Check the tag matches the mod's version
+        run: |
+          version=$(grep '^mod_version=' gradle.properties | cut -d= -f2)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME doesn't match mod_version $version in gradle.properties"
+            exit 1
+          fi
+
+      - name: Build
+        run: chmod +x gradlew && ./gradlew build --no-daemon
+
+      - name: Hash the jar
+        run: |
+          cd build/libs
+          for jar in *-mc*.jar; do sha256sum "$jar" > "$jar.sha256"; done
+          ls -l
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            mcme-modpack-marker/build/libs/*-mc*.jar
+            mcme-modpack-marker/build/libs/*-mc*.jar.sha256

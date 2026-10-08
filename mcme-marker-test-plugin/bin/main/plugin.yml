@@ -1,0 +1,4 @@
+name: mcme-marker-test-plugin
+version: '${version}'
+main: im.opl.mcme.marker.plugin.mcmemarkertestplugin.MCMEMarkerTestPlugin
+api-version: '1.20'

@@ -1,0 +1,61 @@
+# Checks the shader-pack recipes against the packs they're for
+# (tools/recipes/check_recipes.py, docs/shader-packs.md): on every change to
+# them, and weekly, as RP-Mordor's eye and lava shaders change too.
+name: Check recipes
+
+on:
+  push:
+    paths:
+      - "mcme-modpack-marker/src/main/java/im/opl/mcme/marker/shaderpacks/**"
+      - "mcme-modpack-marker/src/main/resources/mcme/patch/**"
+      - "tools/recipes/**"
+      - ".github/workflows/recipes.yml"
+  pull_request:
+    paths:
+      - "mcme-modpack-marker/src/main/java/im/opl/mcme/marker/shaderpacks/**"
+      - "mcme-modpack-marker/src/main/resources/mcme/patch/**"
+      - "tools/recipes/**"
+      - ".github/workflows/recipes.yml"
+  schedule:
+    - cron: "41 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  recipes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # the eye and the lava the recipes draw: RP-Mordor's, over the shader base
+      - uses: actions/checkout@v4
+        with:
+          repository: MCME/RP-Mordor
+          path: rp-mordor
+      - uses: actions/checkout@v4
+        with:
+          repository: MCME/ResourcePackScripts
+          path: scripts
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Build
+        working-directory: mcme-modpack-marker
+        run: chmod +x gradlew && ./gradlew build --no-daemon
+
+      - name: Install glslang
+        run: sudo apt-get update -q && sudo apt-get install -yq glslang-tools
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mcme-recipes
+          key: shader-packs-${{ hashFiles('tools/recipes/packs.json') }}
+
+      - name: Check
+        run: >
+          python3 tools/recipes/check_recipes.py
+          --jar "$(ls mcme-modpack-marker/build/libs/*-mc*.jar)"
+          --include rp-mordor/assets/minecraft/shaders/include
+          --include scripts/shaderBase/assets/minecraft/shaders/include

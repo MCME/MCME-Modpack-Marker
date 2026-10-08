@@ -1,0 +1,31 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "im.opl.mcme.marker.mixin",
+	"plugin": "im.opl.mcme.marker.mixin.MixinPlugin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"GlobalSettingsUniformMixin",
+		"FogRendererMixin",
+		"SpriteContentsAccessor",
+		"dh.GlShaderMixin",
+		"dh.DhBlockColorMixin",
+		"dh.DhBlockOpacityMixin",
+		"dh.DhIgnoredBlocksMixin",
+		"dh.DhQuadWrapperMixin",
+		"dh.DhWaterOpacityMixin",
+		"dh.DhWaterSidesMixin",
+		"dh.DhFogParamsMixin",
+		"dh.DhBlazeFogParamsMixin",
+		"dh.DhRendererTrackingMixin",
+		"dh.DhGenericRendererTrackingMixin",
+		"dh.GlDhTerrainShaderProgramMixin",
+		"iris.IrisMixin",
+		"iris.ShaderCreatorMixin",
+		"iris.IrisLodRenderProgramMixin",
+		"iris.IrisRenderingPipelineMixin"
+	],
+	"injectors": {
+		"defaultRequire": 0
+	}
+}

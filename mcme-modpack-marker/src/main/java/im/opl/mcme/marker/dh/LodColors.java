@@ -107,10 +107,16 @@ public final class LodColors {
 	}
 
 	/**
-	 * Every block state no one can see (isInvisible), for DH to leave out of its
-	 * LODs; null while models aren't loaded. Only states whose particle texture
-	 * is see-through are looked at closely: no one gives a block that's seen a
-	 * blank particle.
+	 * Every block state no one sees far off, for DH to leave out of its LODs;
+	 * null while models aren't loaded:
+	 * - those no one can see at all (isInvisible). Only states whose particle
+	 *   texture is see-through are looked at closely: no one gives a block
+	 *   that's seen a blank particle;
+	 * - those whose face DH colours them by (lodFace) has a blank texture named
+	 *   *_lod: a pack's way of keeping a block out of LODs, as RP-Mordor's fire
+	 *   eye on shroomlight does (fire_eye_lod). DH drew it as a box no one sees,
+	 *   which still hid the faces behind it. Only so named: plants give some
+	 *   faces a blank texture (block/invisible) and are seen all the same.
 	 */
 	public static List<BlockState> unseen() {
 		var models = Minecraft.getInstance().getModelManager().getBlockStateModelSet();
@@ -118,15 +124,50 @@ public final class LodColors {
 		java.util.Map<TextureAtlasSprite, Boolean> blank = new java.util.HashMap<>();
 		List<BlockState> unseen = new ArrayList<>();
 		for (BlockState state : net.minecraft.world.level.block.Block.BLOCK_STATE_REGISTRY) {
-			if (state.isAir()) continue;
-			TextureAtlasSprite particle = models.get(state).particleMaterial().sprite();
+			if (state.isAir() || !state.getFluidState().isEmpty()) continue;
+			BlockStateModel model = models.get(state);
+			TextureAtlasSprite face = lodFace(model, state);
+			if (face != null && face.contents().name().getPath().endsWith("_lod") && blank.computeIfAbsent(face, LodColors::isBlank)) {
+				unseen.add(state);
+				continue;
+			}
+			TextureAtlasSprite particle = model.particleMaterial().sprite();
 			if (!blank.computeIfAbsent(particle, LodColors::isBlank)) continue;
 			if (isInvisible(state)) unseen.add(state);
 		}
 		return unseen;
 	}
 
-	// whether every pixel of a sprite is fully see-through
+	// the order DH looks for a face to colour a block by (ClientBlockStateColorCache.COLOR_RESOLUTION_DIRECTION_ORDER)
+	private static final Direction[] DH_FACE_ORDER = {Direction.UP, Direction.NORTH, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.DOWN};
+
+	/**
+	 * The texture DH colours a block by: its model's first face culled on a
+	 * side, in DH's order - a pillar's not on top - or else its first unculled
+	 * one. Only the model's own faces: null for one drawn through Fabric's
+	 * renderer, or with none.
+	 */
+	private static TextureAtlasSprite lodFace(BlockStateModel model, BlockState state) {
+		List<BlockStateModelPart> parts = new ArrayList<>();
+		synchronized (ModelQuads.class) {
+			model.collectParts(RandomSource.create(42L), parts);
+		}
+		boolean pillar = state.getBlock() instanceof net.minecraft.world.level.block.RotatedPillarBlock;
+		for (Direction side : DH_FACE_ORDER) {
+			if (pillar && side == Direction.UP) continue;
+			for (BlockStateModelPart part : parts) {
+				List<BakedQuad> quads = part.getQuads(side);
+				if (!quads.isEmpty()) return quads.get(0).materialInfo().sprite();
+			}
+		}
+		for (BlockStateModelPart part : parts) {
+			List<BakedQuad> quads = part.getQuads(null);
+			if (!quads.isEmpty()) return quads.get(0).materialInfo().sprite();
+		}
+		return null;
+	}
+
+	// whether every pixel of a sprite is fully see-through, or all but (alpha 1)
 	private static boolean isBlank(TextureAtlasSprite sprite) {
 		var image = ((SpriteContentsAccessor) sprite.contents()).mcme$originalImage();
 		if (image == null) return false;
@@ -144,7 +185,7 @@ public final class LodColors {
 		lines.add(state.toString());
 		lines.add("occludes " + state.canOcclude() + ", skylight passes " + state.propagatesSkylightDown()
 			+ " -> DH's own opacity " + (state.canOcclude() || !state.propagatesSkylightDown() ? 16 : 0) + "; leaves to MCME: " + isLeafy(state)
-			+ ", unseen to MCME: " + isInvisible(state));
+			+ ", unseen to MCME: " + isInvisible(state) + ", kept out by a blank *_lod face: " + lodFaceBlank(state));
 		try {
 			Object wrappers = Class.forName("com.seibel.distanthorizons.common.wrappers.block.BlockStateWrapper").getField("WRAPPER_BY_BLOCK_STATE").get(null);
 			Object wrapper = ((java.util.Map<?, ?>) wrappers).get(state);
@@ -185,6 +226,11 @@ public final class LodColors {
 		Color color = of(state);
 		lines.add("MCME colour: " + (color == null ? "DH's own (full-cube faces)" : String.format("#%06X tinted=%s", color.rgb(), color.tinted())));
 		return lines;
+	}
+
+	private static boolean lodFaceBlank(BlockState state) {
+		TextureAtlasSprite face = lodFace(Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(state), state);
+		return face != null && face.contents().name().getPath().endsWith("_lod") && isBlank(face);
 	}
 
 	private static double area(BakedQuad quad) {

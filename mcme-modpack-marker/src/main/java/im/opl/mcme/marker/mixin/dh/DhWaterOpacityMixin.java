@@ -10,20 +10,27 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 /**
  * Distant Horizons draws water as see-through as its texture (two thirds to
- * three quarters opaque). That suits a lake's top, but far off a waterfall a
- * block thick then shows the dark cliff behind it, and looks dark: few
- * pixels, and none of the light and foam it has close up, where its sides
- * are see-through (water.glsl's WATER_MURK_SIDE). So far off water's sides
- * and undersides are WATER_OPACITY (LodQuadBuilder.addQuadAdj, addQuadDown),
- * and its tops stay DH's. Water is DH's material 12
- * (EDhApiBlockMaterial.WATER), which it hands each quad as irisBlockMaterialId.
+ * three quarters opaque). Far off a waterfall a block thick then shows the
+ * dark cliff behind it, and looks dark: few pixels, and none of the light and
+ * foam it has close up. Its tops too: far off a fall is mostly the tops of
+ * its flowing water's steps, and see-through they showed the pool and cliff
+ * behind in streaks. So far off all of water's faces are WATER_OPACITY
+ * (LodQuadBuilder.addQuadUp, addQuadAdj, addQuadDown), as close up MCME's
+ * water seen from afar is all but opaque (its murk, water.glsl). Water is
+ * DH's material 12 (EDhApiBlockMaterial.WATER), which it hands each quad as
+ * irisBlockMaterialId.
  */
 @Pseudo
 @Mixin(targets = "com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.LodQuadBuilder", remap = false)
 public abstract class DhWaterOpacityMixin {
 	private static final int WATER = 12;
 	private static final int WATER_OPACITY = 245;
-	private static final boolean[] mcme$logged = new boolean[2];
+	private static final boolean[] mcme$logged = new boolean[3];
+
+	@ModifyVariable(method = "addQuadUp", at = @At("HEAD"), argsOnly = true, name = "color", require = 0)
+	private int mcme$opaqueTop(int color, @Local(argsOnly = true, name = "irisBlockMaterialId") byte material) {
+		return mcme$opaque(color, material, 2, "tops");
+	}
 
 	@ModifyVariable(method = "addQuadAdj", at = @At("HEAD"), argsOnly = true, name = "color", require = 0)
 	private int mcme$opaqueSide(int color, @Local(argsOnly = true, name = "irisBlockMaterialId") byte material) {

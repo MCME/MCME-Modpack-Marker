@@ -6,6 +6,7 @@
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"GlobalSettingsUniformMixin",
+		"FogRendererMixin",
 		"SpriteContentsAccessor",
 		"dh.GlShaderMixin",
 		"dh.DhBlockColorMixin",
@@ -14,6 +15,8 @@
 		"dh.DhQuadWrapperMixin",
 		"dh.DhWaterOpacityMixin",
 		"dh.DhWaterSidesMixin",
+		"dh.DhFogParamsMixin",
+		"dh.DhBlazeFogParamsMixin",
 		"dh.DhRendererTrackingMixin",
 		"dh.DhGenericRendererTrackingMixin",
 		"dh.GlDhTerrainShaderProgramMixin",

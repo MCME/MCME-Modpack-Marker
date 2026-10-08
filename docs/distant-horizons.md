@@ -73,6 +73,15 @@ DH gives each block state one colour, worked out once from its model
    see-through (`LodColors.unseen`) to that list as DH makes it, and
    `DhReload` has DH make it again after a pack switch. The shade the block
    casts stays, in the light DH keeps. The log says how many states it added.
+   It adds as well every state whose face DH colours it by (the first culled
+   face, up, north, east, west, south, down, else the first unculled one) has
+   a blank texture named `*_lod` (alpha 1 at most): a pack's way of keeping a
+   block out of LODs. DH drew such a block as a box no one sees, which still
+   hid the LOD faces behind it. Only so named, as plants give some faces a
+   blank texture (`block/invisible`) and are seen all the same. RP-Mordor's
+   fire eye (shroomlight) has one, a tiny cube inside the eye textured
+   `fire_eye_lod`, so far off it's air and only the shader draws the eye.
+   Minecraft drops an element of no size, so the cube needs one.
 
 Waterfalls: DH drew them with holes, the cliff behind showing through.
 

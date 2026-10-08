@@ -38,7 +38,10 @@ public class MCMEModpackMarker implements ClientModInitializer {
 		if (FabricLoader.getInstance().isModLoaded("distanthorizons")) {
 			net.fabricmc.fabric.api.resource.v1.ResourceLoader.get(net.minecraft.server.packs.PackType.CLIENT_RESOURCES).registerReloadListener(
 				Identifier.fromNamespaceAndPath(MOD_ID, "dh_shaders"),
-				(net.minecraft.server.packs.resources.ResourceManagerReloadListener) resources -> im.opl.mcme.marker.dh.DhReload.afterReload());
+				(net.minecraft.server.packs.resources.ResourceManagerReloadListener) resources -> {
+					im.opl.mcme.marker.dh.DhFog.forgetEye();
+					im.opl.mcme.marker.dh.DhReload.afterReload();
+				});
 		}
 
 		// /mcme: the settings - opened on the next tick, once the chat that ran it has closed;

@@ -25,7 +25,9 @@ import org.lwjgl.opengl.GL20;
  * game's resources. This gives the OpenGL renderer the same: a shader a resource
  * pack has at the same path is used instead of DH's own, with
  * {@code #moj_import <namespace:file>} lines filled in from the packs'
- * {@code shaders/include/} as the game does.
+ * {@code shaders/include/} as the game does - and 26.3's {@code #include}
+ * ones, which the packs' 26.3 copies of their includes (their overlay mc26_3)
+ * import by.
  *
  * <p>And as DH's OpenGL terrain shader isn't told where the camera is, nor the
  * time, it is given both: {@code uMcmeCameraBlock} (ivec3) and
@@ -37,7 +39,7 @@ import org.lwjgl.opengl.GL20;
  * after a resource reload {@link DhReload} has it build them again.
  */
 public final class DhShaders {
-	private static final Pattern IMPORT = Pattern.compile("^\\s*#moj_import\\s*<(?:([a-z0-9_.-]+):)?([^>]+)>\\s*$");
+	private static final Pattern IMPORT = Pattern.compile("^\\s*#\\s*(?:moj_import|include)\\s*<(?:([a-z0-9_.-]+):)?([^>]+)>\\s*$");
 	private static final Set<String> LOGGED = ConcurrentHashMap.newKeySet();
 	// each shader DH has loaded through load(): what it got, or "" for its own
 	private static final java.util.Map<String, String> LOADED = new ConcurrentHashMap<>();

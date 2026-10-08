@@ -1,7 +1,7 @@
 package im.opl.mcme.marker.iris;
 
-import com.mojang.blaze3d.opengl.GlStateManager;
-import com.mojang.blaze3d.opengl.GlTexture;
+import com.mojang.renderpearl.backend.opengl.GlStateManager;
+import com.mojang.renderpearl.backend.opengl.GlTexture;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import im.opl.mcme.marker.MCMEModpackMarker;
 import im.opl.mcme.marker.McmeConfig;

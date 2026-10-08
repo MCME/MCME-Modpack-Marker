@@ -1,7 +1,10 @@
-# A release for every version tag (v1.1.0 and so on): builds the mod and
-# publishes the jar with its SHA-256 beside it, which is what the mod's
-# updater looks for - mcme-modpack-marker-<version>-mc<Minecraft>.jar and
-# that name plus .sha256. The tag has to match mod_version in gradle.properties.
+# A release for every version tag: builds the mod and publishes the jar with
+# its SHA-256 beside it, which is what the mod's updater looks for -
+# mcme-modpack-marker-<version>-mc<Minecraft>.jar and that name plus .sha256.
+# The tag is v<mod_version> (v1.1.0), or v<mod_version>-mc<minecraft_version>
+# (v1.1.0-mc26.3) for a release of the same version for another Minecraft
+# version, built from that version's branch: each game's updater takes the
+# newest jar for its own Minecraft version, from whichever release has it.
 name: Release
 
 on:
@@ -28,8 +31,9 @@ jobs:
       - name: Check the tag matches the mod's version
         run: |
           version=$(grep '^mod_version=' gradle.properties | cut -d= -f2)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "Tag $GITHUB_REF_NAME doesn't match mod_version $version in gradle.properties"
+          minecraft=$(grep '^minecraft_version=' gradle.properties | cut -d= -f2)
+          if [ "$GITHUB_REF_NAME" != "v$version" ] && [ "$GITHUB_REF_NAME" != "v$version-mc$minecraft" ]; then
+            echo "Tag $GITHUB_REF_NAME matches neither v$version nor v$version-mc$minecraft (gradle.properties)"
             exit 1
           fi
 
@@ -44,6 +48,8 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
+          # a full release, -mc tag or not: the updater skips prereleases
+          prerelease: false
           files: |
             mcme-modpack-marker/build/libs/*-mc*.jar
             mcme-modpack-marker/build/libs/*-mc*.jar.sha256

@@ -153,6 +153,7 @@ public final class DhReload {
 
 		Class<?> wrapper = Class.forName(WRAPPERS + "block.BlockStateWrapper");
 		Map<?, ?> wrappers = (Map<?, ?>) wrapper.getField("WRAPPER_BY_BLOCK_STATE").get(null);
+		LodColors.unseen();     // the unseen states for these packs, before their opacity (DhBlockOpacityMixin)
 		Method opacityOf = wrapper.getDeclaredMethod("calculateOpacity", net.minecraft.world.level.block.state.BlockState.class, boolean.class, boolean.class);
 		Method isAir = wrapper.getDeclaredMethod("isAir", net.minecraft.world.level.block.state.BlockState.class);
 		opacityOf.setAccessible(true);

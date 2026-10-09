@@ -30,6 +30,9 @@ public final class LodColors {
 
 	private static final Direction[] SIDES = Direction.values();
 
+	// the states unseen() last found, for DH threads to look up without the textures
+	private static volatile java.util.Set<BlockState> unseenStates = java.util.Set.of();
+
 	private LodColors() {
 	}
 
@@ -117,8 +120,24 @@ public final class LodColors {
 	 *   eye on shroomlight does (fire_eye_lod). DH drew it as a box no one sees,
 	 *   which still hid the faces behind it. Only so named: plants give some
 	 *   faces a blank texture (block/invisible) and are seen all the same.
+	 * Also null while a resource reload has freed the textures it reads.
 	 */
 	public static List<BlockState> unseen() {
+		try {
+			List<BlockState> unseen = findUnseen();
+			if (unseen != null) unseenStates = java.util.Set.copyOf(unseen);
+			return unseen;
+		} catch (IllegalStateException e) {
+			return null;     // "Image is not allocated": the old packs' textures, freed mid-reload
+		}
+	}
+
+	/** Whether unseen() last found the state unseen: safe on any thread, at any time. */
+	public static boolean isUnseen(BlockState state) {
+		return unseenStates.contains(state);
+	}
+
+	private static List<BlockState> findUnseen() {
 		var models = Minecraft.getInstance().getModelManager().getBlockStateModelSet();
 		if (models == null) return null;
 		java.util.Map<TextureAtlasSprite, Boolean> blank = new java.util.HashMap<>();

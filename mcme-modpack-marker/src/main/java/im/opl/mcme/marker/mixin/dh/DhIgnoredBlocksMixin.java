@@ -23,7 +23,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * the blocks DH ignores do, which it treats as air
  * (BlockStateWrapper.getRendererIgnoredBlocks, from its "ignored render
  * blocks" setting). Such blocks are added to that list as DH makes it
- * (LodColors.unseen). The shade they cast stays, in the light DH keeps.
+ * (LodColors.unseen), and given an opacity of 0 (DhBlockOpacityMixin): any
+ * wrapper made before they were known gets it here. The shade they cast
+ * stays, in the light DH keeps.
  */
 @Pseudo
 @Mixin(targets = "com.seibel.distanthorizons.common.wrappers.block.BlockStateWrapper", remap = false)
@@ -44,7 +46,16 @@ public abstract class DhIgnoredBlocksMixin {
 					BlockState.class, Class.forName("com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper"));
 				@SuppressWarnings("unchecked")
 				Set<Object> set = (Set<Object>) ignored;
-				for (BlockState state : unseen) set.add(wrap.invoke(null, state, level));
+				java.lang.reflect.Field opacity = null;
+				for (BlockState state : unseen) {
+					Object wrapper = wrap.invoke(null, state, level);
+					set.add(wrapper);
+					if (opacity == null) {
+						opacity = wrapper.getClass().getDeclaredField("opacity");
+						opacity.setAccessible(true);
+					}
+					opacity.setInt(wrapper, 0);
+				}
 				mcme$done = new WeakReference<>(ignored);
 				MCMEModpackMarker.LOGGER.info("Distant Horizons leaves out {} block states no one can see (MCME){}", unseen.size(),
 					unseen.isEmpty() ? "" : ", such as " + unseen.get(0));

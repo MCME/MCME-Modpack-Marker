@@ -38,7 +38,7 @@ behaves as without the mod. How that works, and where each hook is, is in
 | Setting | What it does |
 |---|---|
 | Update automatically | Download and install new releases. |
-| Shader pack recipes | Edit supported shader packs (Bliss, Complementary, BSL, MakeUp, Mellow, Solas, Sildur's) to draw the fire eye and lava. |
+| Shader pack recipes | Edit supported shader packs (Bliss, Complementary, BSL, MakeUp, Mellow, Solas, Sildur's, Photon) to draw the fire eye and lava. |
 | Fluids in shader packs | Show the resource packs' water, lava and tar in any shader pack. |
 | Fire eye over shader packs | Draw the eye over packs without a recipe. |
 | Distant Horizons shaders | Let resource packs replace DH's shaders (the eye and lava far off). |

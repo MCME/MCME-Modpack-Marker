@@ -192,9 +192,30 @@ final class BlissRecipe {
             + "\t\t\timageStore(mcmeEyeCloud, ivec2(0), vec4(mcmeClouds.a));\n"
             + "\t\t}\n";
 
+    // The same for Bliss 2.1.2, the latest release, whose clouds are
+    // renderClouds(), stopping at the distance of the view position they are
+    // given (CLOUDS_INTERSECT_TERRAIN, always on in its composite2). It cuts
+    // its global steps down on each call, for the direction it's given, so
+    // they're put back as they start first
+    static final String BLISS_212_CLOUDS_MAIN = "\n"
+            + "\t\t// MCME: the clouds between the camera and the fire eye, once a frame:\n"
+            + "\t\t// Bliss's own, as far as the eye\n"
+            + "\t\tif (all(lessThan(gl_FragCoord.xy, vec2(1.0)))) {\n"
+            + "\t\t\tvec3 mcmeEye = vec3(MCME_EYE_BLOCK - cameraPositionInt) + 0.5 - cameraPositionFract;\n"
+            + "\t\t\t#ifdef HQ_CLOUDS\n"
+            + "\t\t\t\tmaxIT_clouds = minRayMarchSteps;\n"
+            + "\t\t\t#else\n"
+            + "\t\t\t\tmaxIT_clouds = minRayMarchStepsLQ;\n"
+            + "\t\t\t#endif\n"
+            + "\t\t\tvec3 mcmeCloudDepth = vec3(0.0);\n"
+            + "\t\t\tvec4 mcmeClouds = renderClouds((gbufferModelView * vec4(mcmeEye, 1.0)).xyz, vec2(0.5), directLightColor, indirectLightColor, mcmeCloudDepth);\n"
+            + "\t\t\timageStore(mcmeEyeCloud, ivec2(0), vec4(mcmeClouds.a));\n"
+            + "\t\t}\n";
+
     /**
      * Adds to edits those measuring the clouds in front of the eye - none where
-     * Bliss's clouds aren't the ones this knows (2.1's). Whether it did.
+     * Bliss's clouds aren't the ones this knows (2.1's, 2.1.2's or the
+     * development builds'). Whether it did.
      */
     static boolean blissClouds(Path shaders, Eye eye, Map<Path, String> edits) throws IOException, Unsupported {
         Path comp2 = shaders.resolve("dimensions/composite2.fsh");
@@ -205,12 +226,18 @@ final class BlissRecipe {
         String full = expand(shaders, text, comp2.getParent(), new HashSet<Path>());
         String anchor = "vec4 VolumetricClouds = GetVolumetricClouds\\(viewPos0, BN, WsunVec, directLightColor, indirectLightColor, "
                 + "cloudPlaneDistance, phaseLevels, backScatterPhase\\);";
-        String measure = BLISS_CLOUDS_MAIN;
+        String measure = BLISS_CLOUDS_MAIN, function = "vec4 GetVolumetricClouds(";
         if (!search(anchor, text)) {
             anchor = "vec4 VolumetricClouds = GetVolumetricClouds\\(viewPos0, BN, WsunVec, directLightColor, indirectLightColor\\);";
             measure = BLISS_DEV_CLOUDS_MAIN;
         }
-        if (!search(anchor, text) || !full.contains("vec4 GetVolumetricClouds(")) {
+        if (!search(anchor, text)) {
+            anchor = "vec4 VolumetricClouds = renderClouds\\(viewPos0, vec2\\(noise_1, ?noise_2\\), directLightColor, indirectLightColor, cloudDepth\\);";
+            measure = BLISS_212_CLOUDS_MAIN;
+            function = "vec4 renderClouds(";
+            if (!full.contains("int maxIT_clouds") || !full.contains("minRayMarchStepsLQ")) return false;
+        }
+        if (!search(anchor, text) || !full.contains(function)) {
             return false;
         }
         String name = comp2.getFileName().toString();

@@ -718,6 +718,7 @@ public final class ShaderPackPatcher {
         RECIPES.put("Complementary", ComplementaryRecipe::complementary);
         RECIPES.put("Solas", SolasRecipe::solas);
         RECIPES.put("Sildur's", SildursRecipe::sildurs);
+        RECIPES.put("Photon", PhotonRecipe::photon);
     }
 
     // ---------------------------------------------------------------- main

@@ -7,7 +7,8 @@ mod brings MCME's effects back two ways.
 
 A recipe for each supported pack, each its own class: `BlissRecipe`,
 `ComplementaryRecipe` (Complementary Reimagined, Unbound, Spooklementary),
-`BslRecipe`, `MakeUpRecipe`, `MellowRecipe`, `SolasRecipe`, `SildursRecipe`.
+`BslRecipe`, `MakeUpRecipe`, `MellowRecipe`, `SolasRecipe`, `SildursRecipe`,
+`PhotonRecipe`.
 `ShaderPackPatcher` holds what they share - finding and editing code in a
 pack, the eye's and the lava's includes and uniforms - and tries them in turn
 (`RECIPES`). A recipe draws RP-Mordor's fire eye inside the pack's own passes,

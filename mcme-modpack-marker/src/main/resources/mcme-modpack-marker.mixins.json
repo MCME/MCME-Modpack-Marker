@@ -25,7 +25,11 @@
 		"iris.ShaderCreatorMixin",
 		"iris.IrisLodRenderProgramMixin",
 		"iris.IrisRenderingPipelineMixin",
-		"sodium.SodiumMeshQuadMixin"
+		"sodium.SodiumMeshQuadMixin",
+		"voxy.VoxyModelBakeryMixin",
+		"voxy.VoxyModelFactoryMixin",
+		"voxy.VoxyShaderLoaderMixin",
+		"voxy.VoxyLavaIdMixin"
 	],
 	"injectors": {
 		"defaultRequire": 0

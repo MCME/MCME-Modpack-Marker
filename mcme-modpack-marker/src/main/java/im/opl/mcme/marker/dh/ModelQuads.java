@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.data.AtlasIds;
@@ -24,7 +25,8 @@ import net.minecraft.world.level.block.state.BlockState;
  * models - all MCME's custom leaves, on leaf, door and trapdoor states - are
  * drawn so: DH, finding no faces, took their particle texture for their
  * colour, which on a multipart blockstate is its first entry's (a door's
- * sandstone), and their opacity for nothing.
+ * sandstone), and their opacity for nothing. Voxy, the same way, baked them
+ * as nothing - and leaves, which it draws solid, as black.
  */
 public final class ModelQuads {
 	private static final Direction[] SIDES = Direction.values();
@@ -67,6 +69,47 @@ public final class ModelQuads {
 		if (!any) emitted(model, state, faces);
 		FACES.put(state, new Known(model, faces));
 		return faces;
+	}
+
+	/**
+	 * The faces drawn through Fabric's renderer API, as one model part, for
+	 * readers of parts; null when the parts have faces of their own, or the
+	 * model draws none.
+	 */
+	public static BlockStateModelPart drawnPart(BlockState state, BlockStateModel model, List<BlockStateModelPart> parts) {
+		for (BlockStateModelPart part : parts) {
+			if (!part.getQuads(null).isEmpty()) return null;
+			for (Direction side : SIDES) {
+				if (!part.getQuads(side).isEmpty()) return null;
+			}
+		}
+		List<BakedQuad>[] faces = all(state);
+		if (faces == null) return null;
+		boolean any = false;
+		for (List<BakedQuad> quads : faces) any |= !quads.isEmpty();
+		if (!any) return null;
+		BlockStateModelPart first = parts.isEmpty() ? null : parts.get(0);
+		return new BlockStateModelPart() {
+			@Override
+			public List<BakedQuad> getQuads(Direction side) {
+				return faces[side == null ? UNCULLED : side.ordinal()];
+			}
+
+			@Override
+			public boolean useAmbientOcclusion() {
+				return first == null || first.useAmbientOcclusion();
+			}
+
+			@Override
+			public Material.Baked particleMaterial() {
+				return first == null ? model.particleMaterial() : first.particleMaterial();
+			}
+
+			@Override
+			public int materialFlags() {
+				return first == null ? model.materialFlags() : first.materialFlags();
+			}
+		};
 	}
 
 	/**

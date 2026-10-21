@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
@@ -19,8 +20,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * part: Voxy reads its shaders from its own jar, so a pack can't replace
  * them. When a pack has minecraft:shaders/include/mcme_voxy_terrain.glsl,
  * Voxy's terrain shaders (lod/gl46/quads3.vert, quads.frag) are patched as
- * they load to import it and call it, and its imports are read from the
- * resource packs. With a shader pack (PATCHED_SHADER) Voxy appends the shader
+ * they load to call it, its imports filled in from the resource packs. With a shader pack (PATCHED_SHADER) Voxy appends the shader
  * pack's code to the same quads.frag: lava's look goes to it as the colour
  * it samples, for it to light as its own lava.
  *
@@ -79,18 +79,42 @@ public final class VoxyShaders {
 		return state instanceof BlockState block && block.is(Blocks.LAVA);
 	}
 
-	/** A shader file Voxy imports from outside its own namespace, from the resource packs; null if none has it. */
-	public static String fromPacks(Identifier id) {
-		Optional<Resource> resource = Minecraft.getInstance().getResourceManager().getResource(id.withPrefix("shaders/"));
-		if (resource.isEmpty()) return null;
-		try (InputStream in = resource.get().open()) {
-			String source = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-			// in Voxy's form, paths from shaders/: <minecraft:x.glsl> is minecraft:shaders/include/x.glsl
-			return IMPORT.matcher(source).replaceAll("#import <$1:include/$2>");
-		} catch (IOException e) {
-			MCMEModpackMarker.LOGGER.warn("MCME couldn't read {} for Voxy", id, e);
+	/**
+	 * The resource packs' part, its imports filled in, as vanilla fills them;
+	 * null if a pack doesn't have it, or any of it can't be read. All read
+	 * before quads.frag is patched to use it: Voxy crashes the game on a
+	 * shader it can't load.
+	 */
+	private static String packPart() {
+		return Minecraft.getInstance().getResourceManager().getResource(HOOK).isEmpty() ? null : expand(HOOK, 0);
+	}
+
+	private static String expand(Identifier file, int depth) {
+		if (depth > 16) {
+			MCMEModpackMarker.LOGGER.warn("MCME found {} imported too deep for Voxy (a loop?)", file);
 			return null;
 		}
+		Optional<Resource> resource = Minecraft.getInstance().getResourceManager().getResource(file);
+		if (resource.isEmpty()) {
+			MCMEModpackMarker.LOGGER.warn("MCME couldn't find {} for Voxy", file);
+			return null;
+		}
+		String source;
+		try (InputStream in = resource.get().open()) {
+			source = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			MCMEModpackMarker.LOGGER.warn("MCME couldn't read {} for Voxy", file, e);
+			return null;
+		}
+		// <minecraft:x.glsl> is minecraft:shaders/include/x.glsl
+		Matcher imports = IMPORT.matcher(source);
+		StringBuilder out = new StringBuilder();
+		while (imports.find()) {
+			String imported = expand(Identifier.fromNamespaceAndPath(imports.group(1), "shaders/include/" + imports.group(2)), depth + 1);
+			if (imported == null) return null;
+			imports.appendReplacement(out, Matcher.quoteReplacement(imported));
+		}
+		return imports.appendTail(out).toString();
 	}
 
 	/**
@@ -103,19 +127,19 @@ public final class VoxyShaders {
 		if (source == null || !id.getNamespace().equals("voxy")) return source;
 		boolean vertex = id.getPath().equals("lod/gl46/quads3.vert");
 		if (!vertex && !id.getPath().equals("lod/gl46/quads.frag")) return source;
-		boolean hook = Minecraft.getInstance().getResourceManager().getResource(HOOK).isPresent();
-		if (vertex) {
-			vertexPatched = false;
-			if (!hook) return source;
-		}
-		String patched = vertex ? vertex(source) : fragment(source, hook && vertexPatched);
+		// unmarked until patched: should patching fail, lava's ids stay the shader pack's
+		if (vertex) vertexPatched = false;
+		else marking = false;
+		if (vertex && Minecraft.getInstance().getResourceManager().getResource(HOOK).isEmpty()) return source;
+		String part = vertex || !vertexPatched ? null : packPart();
+		String patched = vertex ? vertex(source) : fragment(source, part);
 		if (vertex) vertexPatched = patched != null;
 		else marking = patched != null;
 		if (patched == null) {
 			MCMEModpackMarker.LOGGER.warn("MCME couldn't find its places in Voxy's {}, so leaves it as it is", id);
 			return source;
 		}
-		if (hook) MCMEModpackMarker.LOGGER.info("MCME patched Voxy's {} with the resource packs' mcme_voxy_terrain.glsl", id);
+		if (vertex || part != null) MCMEModpackMarker.LOGGER.info("MCME patched Voxy's {} with the resource packs' mcme_voxy_terrain.glsl", id);
 		return patched;
 	}
 
@@ -130,13 +154,13 @@ public final class VoxyShaders {
 				+ "    mcmeLodId = modelData[extractStateId(quadData[uint(gl_VertexID)>>2])].customId;\n");
 	}
 
-	private static String fragment(String source, boolean hook) {
+	private static String fragment(String source, String part) {
 		String emit = "tint, model.customId));\n", main = "\nvoid main() {\n";
 		String patched = insert(source,
 			"#import <voxy:lod/gl46/bindings.glsl>\n",
 			"// MCME: lava's mark (VoxyShaders), and the resource packs' part (minecraft:shaders/include/mcme_voxy_terrain.glsl)\n"
 				+ "#define MCME_VOXY_LAVA_BIT " + Integer.toUnsignedString(LAVA_BIT) + "u\n"
-				+ (hook ? "#define MCME_VOXY\n#define LIGHTING_SAMPLER_BINDING 1\n"
+				+ (part != null ? "#define MCME_VOXY\n#define LIGHTING_SAMPLER_BINDING 1\n"
 					+ "layout(location = 10) in vec3 mcmeLodPoint;\nlayout(location = 11) flat in uint mcmeLodId;\n" : ""),
 			"    colour = computeColour(texPos, colour);\n",
 			"    #ifdef MCME_VOXY\n    mcmeVoxyTerrain(colour);\n    #endif\n");
@@ -145,8 +169,9 @@ public final class VoxyShaders {
 		int line = patched.lastIndexOf('\n', patched.indexOf(emit)) + 1;
 		patched = patched.substring(0, line) + "    #ifdef MCME_VOXY\n    mcmeVoxyShaderPack(colour);\n    #endif\n"
 			+ patched.substring(line).replace(emit, "tint, model.customId & ~MCME_VOXY_LAVA_BIT));\n");
-		return patched.replace(main, "\n#ifdef MCME_VOXY\n#import <minecraft:include/mcme_voxy_terrain.glsl>\n#endif\n"
-			+ main + "    #ifdef MCME_VOXY\n    mcmeVoxyBegin();\n    #endif\n");
+		if (part == null) return patched;
+		return patched.replace(main, "\n// MCME: minecraft:shaders/include/mcme_voxy_terrain.glsl\n" + part + "\n"
+			+ main + "    mcmeVoxyBegin();\n");
 	}
 
 	// source with each text after its place (each found once), or null

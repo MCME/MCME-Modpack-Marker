@@ -9,7 +9,7 @@ Source: `mcme-modpack-marker/src/main/java/im/opl/mcme/marker/`.
 | `McmeConfig`, `SettingsScreen`, `ModMenuIntegration` | Settings: a Gson file, the screen (`/mcme`, Mod Menu). |
 | `ShaderClock` | Real-time day clock for vanilla's `GameTime` uniform and DH's `uMcmeTime`. |
 | `iris/` | Edits Iris's compiled terrain programs for any pack (`IrisTerrain`), draws the eye over the final frame (`EyeOverlay`), reads Iris internals by reflection (`IrisAccess`). |
-| `shaderpacks/` | The recipes, one class each (`BlissRecipe`, `ComplementaryRecipe`, `BslRecipe`, `MakeUpRecipe`, `MellowRecipe`, `SolasRecipe`, `SildursRecipe`), their shared editing helpers and the patcher itself (`ShaderPackPatcher`), and the cache of edited packs Iris loads instead (`PatchedShaderPacks`). |
+| `shaderpacks/` | The recipes, one class each (`BlissRecipe`, `ComplementaryRecipe`, `BslRecipe`, `MakeUpRecipe`, `MellowRecipe`, `SolasRecipe`, `SildursRecipe`, `PhotonRecipe`), their shared editing helpers and the patcher itself (`ShaderPackPatcher`), and the cache of edited packs Iris loads instead (`PatchedShaderPacks`). |
 | `dh/` | DH shader overrides (`DhShaders`), DH settings (`DhDefaults`), LOD colours and opacity (`LodColors`, `ModelQuads`), bringing DH up to new resource packs without a restart (`DhReload`). |
 | `update/` | The updater (`Updater`) and the process that swaps the jar after the game closes (`Swapper`). |
 | `mixin/` | Every hook into Minecraft, Iris and DH (below). |

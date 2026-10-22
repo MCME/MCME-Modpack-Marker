@@ -10,7 +10,7 @@ import java.util.Set;
 import net.fabricmc.loader.api.FabricLoader;
 
 /**
- * Every class and member of Iris, Distant Horizons and Sodium this mod hooks or
+ * Every class and member of Iris, Distant Horizons, Sodium and Voxy this mod hooks or
  * reaches by reflection (docs/architecture.md). Their hooks are optional
  * (require = 0) and catch their own errors, so when an update renames one,
  * its feature just stops - silently. This checks them all once the game has
@@ -24,6 +24,7 @@ public final class Hooks {
 	private static final String DH = "com.seibel.distanthorizons.";
 	private static final String IRIS = "net.irisshaders.iris.";
 	private static final String SODIUM = "net.caffeinemc.mods.sodium.";
+	private static final String VOXY = "me.cortex.voxy.";
 
 	private static final List<Hook> HOOKS = List.of(
 		new Hook("iris", "edited shader packs", IRIS + "Iris", "loadShaderpack", "loadExternalShaderpack"),
@@ -35,6 +36,11 @@ public final class Hooks {
 		new Hook("iris", "the eye over shader packs", IRIS + "compat.dh.DHCompat", "hasRenderingEnabled", "getProjection", "getDepthTex"),
 
 		new Hook("sodium", "Special Model Loader models with Sodium", SODIUM + "client.render.model.QuadViewImpl", "load", "isGeometryInvalid"),
+
+		new Hook("voxy", "Special Model Loader models in Voxy's LODs", VOXY + "client.core.model.bakery.SoftwareModelTextureBakery", "bakeBlockModel"),
+		new Hook("voxy", "unseen blocks left out of Voxy's LODs", VOXY + "client.core.model.ModelFactory", "processModelResult", "processTextureBakeResult"),
+		new Hook("voxy", "resource-pack lava in Voxy LODs", VOXY + "client.core.gl.shader.ShaderLoader$ShaderLoadingParser", "loadShaderAsset"),
+		new Hook("voxy", "resource-pack lava in Voxy LODs", VOXY + "client.core.model.ModelFactory", "<init>", "customBlockStateIdMapping", "setCustomBlockStateMapping"),
 
 		new Hook("distanthorizons", "resource-pack DH shaders", DH + "common.render.openGl.glObject.shader.GlShader", "loadFile"),
 		new Hook("distanthorizons", "resource-pack DH shaders", DH + "common.render.openGl.terrain.GlDhTerrainShaderProgram", "fillUniformData"),
@@ -105,11 +111,11 @@ public final class Hooks {
 
 	private static String versions() {
 		List<String> mods = new ArrayList<>();
-		for (String id : new String[]{"sodium", "iris", "distanthorizons"}) {
+		for (String id : new String[]{"sodium", "iris", "distanthorizons", "voxy"}) {
 			FabricLoader.getInstance().getModContainer(id).ifPresent(mod ->
 				mods.add(mod.getMetadata().getName() + " " + mod.getMetadata().getVersion().getFriendlyString()));
 		}
-		return mods.isEmpty() ? "none of Sodium, Iris and Distant Horizons" : String.join(" and ", mods);
+		return mods.isEmpty() ? "none of Sodium, Iris, Distant Horizons and Voxy" : String.join(" and ", mods);
 	}
 
 	// the members of hook that its class lacks: "" alone for the class itself

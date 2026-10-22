@@ -38,7 +38,9 @@ public final class PatchedShaderPacks {
 	private static final String VERSION = "2";
 	private static final String FINGERPRINT = ".mcme-fingerprint";
 	private static final String DONE = ".mcme-recipe";
-	private static final String[] PATCHER_PARTS = {"ShaderPackPatcher.class", "/mcme/patch/fire_eye_draw.glsl", "/mcme/patch/fire_eye_face.glsl",
+	private static final String[] PATCHER_PARTS = {"ShaderPackPatcher.class", "BlissRecipe.class", "BslRecipe.class",
+		"ComplementaryRecipe.class", "MakeUpRecipe.class", "MellowRecipe.class", "PhotonRecipe.class", "SildursRecipe.class", "SolasRecipe.class",
+		"/mcme/patch/fire_eye_draw.glsl", "/mcme/patch/fire_eye_face.glsl",
 		"/mcme/patch/lava_pack.glsl", "/mcme/patch/lod.glsl", "/mcme/patch/pass.fsh", "/mcme/patch/pass.vsh"};
 
 	private PatchedShaderPacks() {

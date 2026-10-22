@@ -32,6 +32,10 @@ public final class LodColors {
 
 	// the states unseen() last found, for DH threads to look up without the textures
 	private static volatile java.util.Set<BlockState> unseenStates = java.util.Set.of();
+	// the block state models unseenStates was found with
+	private static volatile Object unseenFor;
+	// when isUnseenNow last tried to find them (System.nanoTime)
+	private static long unseenTried = System.nanoTime() - 2_000_000_000L;
 
 	private LodColors() {
 	}
@@ -124,12 +128,35 @@ public final class LodColors {
 	 */
 	public static List<BlockState> unseen() {
 		try {
+			Object models = Minecraft.getInstance().getModelManager().getBlockStateModelSet();
 			List<BlockState> unseen = findUnseen();
-			if (unseen != null) unseenStates = java.util.Set.copyOf(unseen);
+			if (unseen != null) {
+				unseenStates = java.util.Set.copyOf(unseen);
+				unseenFor = models;
+			}
 			return unseen;
 		} catch (IllegalStateException e) {
 			return null;     // "Image is not allocated": the old packs' textures, freed mid-reload
 		}
+	}
+
+	/**
+	 * Whether the state is unseen with the models as they are now: unseen()
+	 * found again first if the models changed since. For Voxy, which bakes
+	 * each state once, with no DH around to find them on a reload.
+	 */
+	public static boolean isUnseenNow(BlockState state) {
+		if (Minecraft.getInstance().getModelManager().getBlockStateModelSet() != unseenFor) {
+			synchronized (LodColors.class) {
+				// unseen() reads every state's model: tried again at most once a second while it can't (mid-reload)
+				long now = System.nanoTime();
+				if (Minecraft.getInstance().getModelManager().getBlockStateModelSet() != unseenFor && now - unseenTried > 1_000_000_000L) {
+					unseenTried = now;
+					unseen();
+				}
+			}
+		}
+		return unseenStates.contains(state);
 	}
 
 	/** Whether unseen() last found the state unseen: safe on any thread, at any time. */

@@ -16,6 +16,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
 		if (mixinClassName.startsWith(PACKAGE + "dh.")) return FabricLoader.getInstance().isModLoaded("distanthorizons");
 		if (mixinClassName.startsWith(PACKAGE + "iris.")) return FabricLoader.getInstance().isModLoaded("iris");
 		if (mixinClassName.startsWith(PACKAGE + "sodium.")) return FabricLoader.getInstance().isModLoaded("sodium");
+		if (mixinClassName.startsWith(PACKAGE + "voxy.")) return FabricLoader.getInstance().isModLoaded("voxy");
 		return true;
 	}
 
